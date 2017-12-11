@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+# <xml>
+#     <date day="5" month="12" year="2017">
+#         <entry unixtime="1512462035.000099" uuid="8d1ccb5c-3fae-4fbf-af5f-d4400489a244" state="in"/>
+#         <entry unixtime="1512488711.000006" uuid="7ec2e5ba-0ac6-414d-a2db-0ad132bb516e" state="out"/>
+#     </date>
+#     <date day="6" month="12" year="2017">
+#         <entry unixtime="1512543611.045678" uuid="8ef3e9a1-5419-47bb-a4e8-9610cb4918c9" state="in"/>
+#         <entry unixtime="1512558071.045678" uuid="8f615376-1609-433e-b586-30f2c5c950b1" state="out"/>
+#         <entry unixtime="1512559842.489178" uuid="120e0de2-01de-48c4-9e95-26a5c1a76dbc" state="in"/>
+#         <entry unixtime="1512581723.916178" uuid="f1972620-31ba-4bd5-b6de-4e53d57fa8f3" state="out"/>
+#     </date>
+# </xml>
