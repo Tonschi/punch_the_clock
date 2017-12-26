@@ -46,7 +46,6 @@
 #     </date>
 # </xml>
 
-
 # Zeitüberwachung
 ###############
 # Möglichkeit maximale tägliche Arbeitsstunden einzustellen
@@ -65,6 +64,11 @@ import threading
 from datetime import datetime as dt
 import time
 import xml.etree.ElementTree as et
+import os.path as osp
+import pprint
+import uuid
+
+
 
 def generateTimestamp(Type=""):
     """Generates a Timestamp in either POSIX or human radable format.
@@ -79,43 +83,31 @@ def generateTimestamp(Type=""):
         Timestamp = dt.fromtimestamp(CurrentPosixTime)
         return Timestamp
 
-def startTimeTracking():
+
+def startTracking():
+    timestamp = generateTimestamp("posix")
+
+
+
+def stopTracking():
+    timestamp = generateTimestamp("posix")
+
+def startTimestamp():
     """Starts tracking"""
     timestamp = dt.now()
     return timestamp
 
-def stopTimeTracking():
+def stopTimestamp():
     """Stops tracking"""
     timestamp = dt.now()
     return timestamp
 
-def printPretty(String):
-    """Creates a nice border around a line of text"""
-    StringLength = len(String)
-    if StringLength > 0:
-        print("╔" + "═" * (StringLength + 2) + "╗")
-        print("║", String, "║")
-        print("╚" + "═" * (StringLength + 2) + "╝")
-    else:
-        print(String)
-
-def inputPretty(string):
-    """Creates a nice border around user input"""
-    string_length = len(string)
-    if string_length > 0:
-        print("╔" + "═" * (string_length + 2) + "╗")
-        print("║", string, "║")
-        print("╠" + "═" * (string_length + 2) + "╣")
-        input_string = input("╠ >> ")
-        print("╚" + "═" * (string_length + 2) + "╝")
-        return input_string
-
-def printPrettyElapsed(string, timedelta):
+def printElapsed(string, timedelta):
     duration = convertTimedelta(timedelta)
     hms = []
     for i in range(0,len(duration)):
         hms.append(str(duration[i]).zfill(2))
-    printPretty(string + hms[0] + ":" + hms[1] + ":" + hms[2])
+    print(string + hms[0] + ":" + hms[1] + ":" + hms[2])
 
 def convertTimedelta(timedelta):
     """Converts timedelta to hours, minutes and seconds. Returns a list"""
@@ -134,8 +126,36 @@ def convertTimedelta(timedelta):
 
     # get the total hours
     hours = int(full_minutes // 60)
-
     return hours, remaining_minutes, remaining_seconds
+
+
+
+
+# read xml database file
+DatabaseFileName = "database.xml"
+DatabaseFullPath = osp.join(osp.abspath(osp.curdir), DatabaseFileName)
+DatabaseXML = et.parse(DatabaseFullPath)
+DatabaseXMLRootElement = DatabaseXML.getroot()
+
+AllDataEntries = DatabaseXMLRootElement.findall("date")
+
+NewDateEntry = et.SubElement(DatabaseXMLRootElement, "date")
+NewDateEntry.set("day", generateTimestamp().strftime("%d"))
+NewDateEntry.set("month", generateTimestamp().strftime("%m"))
+NewDateEntry.set("year", generateTimestamp().strftime("%Y"))
+
+NewTimeEntry = et.SubElement(NewDateEntry, "entry")
+NewTimeEntry.set("posixtime", str(generateTimestamp("posix")))
+NewTimeEntry.set("uuid", str(uuid.uuid4()))
+NewTimeEntry.set("state", "in")
+
+DatabaseXML.write(DatabaseFullPath)
+
+
+
+
+
+
 
 def main():
     """Main loop of the program"""
@@ -144,11 +164,11 @@ def main():
     tracking = None
     max_time = None
     # Introduction to the program
-    printPretty("Welcome to the Timestamp application.")
+    print("Welcome to the Timestamp application.")
     while True:
         print(("═" * 64))
-        printPretty("What do you want to do?")
-        choice = inputPretty("Punch in/out, duration, quit? (i/o/d/q)")
+        print("What do you want to do?")
+        choice = input("Punch in/out, duration, quit? (i/o/d/q)")
 
         # Ask the user what to do
         # He can either start or stop time tracking
@@ -158,56 +178,56 @@ def main():
         if choice == "i":
             # check if the program is already tracking the users time
             if tracking == False or tracking == None:
-                time_a = startTimeTracking()
+                time_a = startTimestamp()
                 tracking = True
                 output = "Punched IN: " + time_a.strftime("%d.%m.%Y - %H:%M:%S")
-                printPretty(output)
+                print(output)
             else:
                 # notify the user that he can't start time tracking twice without stopping it once
-                printPretty("You already punched in.")
+                print("You already punched in.")
                 # ask the user whether he wants to edit the current time
-                edit = inputPretty("Do you want to edit/correct the punched in time? (y/n)").lower()
+                edit = input("Do you want to edit/correct the punched in time? (y/n)").lower()
                 # if yes, provide interface for editing the time
                 if edit == "y":
-                    new_time = inputPretty("Enter the new punch in time. (HH:MM:SS)")
+                    new_time = input("Enter the new punch in time. (HH:MM:SS)")
                     if ":" in new_time and len(new_time) == 8:
                         new_time = [int(i) for i in new_time.split(":")]
                         # datetime(year, month, day, hour, minute, second)
                         time_a = dt(time_a.year, time_a.month, time_a.day, new_time[0], new_time[1], new_time[2])
                         output = "Punch IN time changed"
-                        printPretty(output)
+                        print(output)
                         output = "Punched IN: " + time_a.strftime("%d.%m.%Y - %H:%M:%S")
-                        printPretty(output)
+                        print(output)
                     else:
                         print("Invalid input.")
                 else:
                     output = "Punch IN time unchanged"
-                    printPretty(output)
+                    print(output)
                     output = "Punched IN: " + time_a.strftime("%d.%m.%Y - %H:%M:%S")
-                    printPretty(output)
+                    print(output)
         # stop time tracking if the user wishes to
         elif choice == "o":
             if tracking == True and tracking != None:
-                time_b = stopTimeTracking()
+                time_b = stopTimestamp()
                 tracking = False
                 output = "Punched OUT: " + time_b.strftime("%d.%m.%Y - %H:%M:%S")
-                printPretty(output)
+                print(output)
             else:
-                printPretty("Punch in first.")
+                print("Punch in first.")
         # show duration of already tracked time
         elif choice == "d":
             if time_b != None or time_a != None:
                 # if the user already tracks time
                 if tracking == True:
                     # show the elapsed time
-                    printPrettyElapsed("Currently tracking work: ", dt.now() - time_a)
+                    printElapsed("Currently tracking work: ", dt.now() - time_a)
                 else:
-                    printPrettyElapsed("Worked for: ", time_b - time_a)
+                    printElapsed("Worked for: ", time_b - time_a)
             else:
-                printPretty("Punch in and out first.")
+                print("Punch in and out first.")
         elif choice == "q":
             exit(0)
         else:
-            printPretty("Invalid input")
+            print("Invalid input")
 
 main()
