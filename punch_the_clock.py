@@ -35,14 +35,14 @@
 ###############
 # <xml>
 #     <date day="10" month="12" year="2017">
-#         <entry timestamp="753692ec36adb4c794c973945e" state="in"/>
-#         <entry timestamp="0d16219802f027f25d35e207b2" state="out"/>
+#         <entry unixtime="47272722" uuid="753692ec36adb4c794c973945e" state="in"/>
+#         <entry unixtime="47272722" uuid="0d16219802f027f25d35e207b2" state="out"/>
 #     </date>
 #     <date day="11" month="12" year="2017">
-#         <entry timestamp="1b3ad8863d4e11223ff95862b6" state="in"/>
-#         <entry timestamp="d5adb2bb1c7d6f93b3b1564a26" state="out"/>
-#         <entry timestamp="2a99c1649703ea6f76bf259abb" state="in"/>
-#         <entry timestamp="1df5c4b4ab2df41657ac0ae243" state="out"/>
+#         <entry unixtime="49089889" uuid="1b3ad8863d4e11223ff95862b6" state="in"/>
+#         <entry unixtime="47272722" uuid="d5adb2bb1c7d6f93b3b1564a26" state="out"/>
+#         <entry unixtime="47272722" uuid="2a99c1649703ea6f76bf259abb" state="in"/>
+#         <entry unixtime="47272722" uuid="1df5c4b4ab2df41657ac0ae243" state="out"/>
 #     </date>
 # </xml>
 
@@ -62,34 +62,42 @@
 
 
 import threading
-import datetime
+from datetime import datetime as dt
 import time
-import xml.etree
+import xml.etree.ElementTree as et
 
-def generateTimestamp():
-    current_time = datetime.datetime.now()
-    timestamp = (current_time - datetime.datetime(1970, 1, 1)) / datetime.timedelta(seconds=1)
-    return timestamp
+def generateTimestamp(Type=""):
+    """Generates a Timestamp in either POSIX or human radable format.
 
-def punch_in():
-    """Starts tracking"""
-    timestamp = datetime.datetime.now()
-    return timestamp
-
-def punch_out():
-    """Stops tracking"""
-    timestamp = datetime.datetime.now()
-    return timestamp
-
-def printPretty(string):
-    """Creates a nice border around a line of text"""
-    string_length = len(string)
-    if string_length > 0:
-        print("╔" + "═" * (string_length + 2) + "╗")
-        print("║", string, "║")
-        print("╚" + "═" * (string_length + 2) + "╝")
+    Use "posix" as the argument to get UNIX posix time.
+    Leave blank for human readable time. """
+    CurrentPosixTime = dt.timestamp(dt.now())
+    if Type == "posix":
+        Timestamp = CurrentPosixTime
+        return Timestamp
     else:
-        print(string)
+        Timestamp = dt.fromtimestamp(CurrentPosixTime)
+        return Timestamp
+
+def startTimeTracking():
+    """Starts tracking"""
+    timestamp = dt.now()
+    return timestamp
+
+def stopTimeTracking():
+    """Stops tracking"""
+    timestamp = dt.now()
+    return timestamp
+
+def printPretty(String):
+    """Creates a nice border around a line of text"""
+    StringLength = len(String)
+    if StringLength > 0:
+        print("╔" + "═" * (StringLength + 2) + "╗")
+        print("║", String, "║")
+        print("╚" + "═" * (StringLength + 2) + "╝")
+    else:
+        print(String)
 
 def inputPretty(string):
     """Creates a nice border around user input"""
@@ -140,7 +148,7 @@ def main():
     while True:
         print(("═" * 64))
         printPretty("What do you want to do?")
-        choice = inputPretty("Punch in/out, duration? (i/o/d)")
+        choice = inputPretty("Punch in/out, duration, quit? (i/o/d/q)")
 
         # Ask the user what to do
         # He can either start or stop time tracking
@@ -150,7 +158,7 @@ def main():
         if choice == "i":
             # check if the program is already tracking the users time
             if tracking == False or tracking == None:
-                time_a = punch_in()
+                time_a = startTimeTracking()
                 tracking = True
                 output = "Punched IN: " + time_a.strftime("%d.%m.%Y - %H:%M:%S")
                 printPretty(output)
@@ -165,7 +173,7 @@ def main():
                     if ":" in new_time and len(new_time) == 8:
                         new_time = [int(i) for i in new_time.split(":")]
                         # datetime(year, month, day, hour, minute, second)
-                        time_a = datetime.datetime(time_a.year, time_a.month, time_a.day, new_time[0], new_time[1], new_time[2])
+                        time_a = dt(time_a.year, time_a.month, time_a.day, new_time[0], new_time[1], new_time[2])
                         output = "Punch IN time changed"
                         printPretty(output)
                         output = "Punched IN: " + time_a.strftime("%d.%m.%Y - %H:%M:%S")
@@ -180,7 +188,7 @@ def main():
         # stop time tracking if the user wishes to
         elif choice == "o":
             if tracking == True and tracking != None:
-                time_b = punch_out()
+                time_b = stopTimeTracking()
                 tracking = False
                 output = "Punched OUT: " + time_b.strftime("%d.%m.%Y - %H:%M:%S")
                 printPretty(output)
@@ -192,11 +200,13 @@ def main():
                 # if the user already tracks time
                 if tracking == True:
                     # show the elapsed time
-                    printPrettyElapsed("Currently tracking work: ", datetime.datetime.now() - time_a)
+                    printPrettyElapsed("Currently tracking work: ", dt.now() - time_a)
                 else:
                     printPrettyElapsed("Worked for: ", time_b - time_a)
             else:
                 printPretty("Punch in and out first.")
+        elif choice == "q":
+            exit(0)
         else:
             printPretty("Invalid input")
 
