@@ -131,27 +131,50 @@ def convertTimedelta(timedelta):
 
 
 
+Today = [\
+generateTimestamp().strftime("%d"), # Day
+generateTimestamp().strftime("%m"), # Month
+generateTimestamp().strftime("%Y")] # Year
+
+TodayDay = int(Today[0])
+TodayMonth = int(Today[1])
+TodayYear = int(Today[2])
+
 # read xml database file
 DatabaseFileName = "database.xml"
 DatabaseFullPath = osp.join(osp.abspath(osp.curdir), DatabaseFileName)
 DatabaseXML = et.parse(DatabaseFullPath)
 DatabaseXMLRootElement = DatabaseXML.getroot()
 
+
 AllDataEntries = DatabaseXMLRootElement.findall("date")
+for Entry in AllDataEntries:
+    if Entry.iterfind("date"):
+        EntryDay = int(Entry.get("day"))
+        EntryMonth = int(Entry.get("month"))
+        EntryYear = int(Entry.get("year"))
+        EntryDate = dt(EntryYear, EntryMonth, EntryDay)
+        if EntryDate != dt(TodayYear, TodayMonth, TodayDay):
+            NewDateEntry = et.SubElement(DatabaseXMLRootElement, "date")
+            NewDateEntry.set("day", Today[0])
+            NewDateEntry.set("month", Today[1])
+            NewDateEntry.set("year", Today[2])
 
-NewDateEntry = et.SubElement(DatabaseXMLRootElement, "date")
-NewDateEntry.set("day", generateTimestamp().strftime("%d"))
-NewDateEntry.set("month", generateTimestamp().strftime("%m"))
-NewDateEntry.set("year", generateTimestamp().strftime("%Y"))
+            NewTimeEntry = et.SubElement(NewDateEntry, "entry")
+            NewTimeEntry.set("posixtime", str(generateTimestamp("posix")))
+            NewTimeEntry.set("uuid", str(uuid.uuid4()))
+            NewTimeEntry.set("state", "in")
 
-NewTimeEntry = et.SubElement(NewDateEntry, "entry")
-NewTimeEntry.set("posixtime", str(generateTimestamp("posix")))
-NewTimeEntry.set("uuid", str(uuid.uuid4()))
-NewTimeEntry.set("state", "in")
-
-DatabaseXML.write(DatabaseFullPath)
+            DatabaseXML.write(DatabaseFullPath)
 
 
+# AllDataEntries = DatabaseXMLRootElement.findall("date")
+# for Entry in AllDataEntries:
+#     if Entry.iterfind("date"):
+#         if Entry.attrib.get("day") != Today[0] and \
+#         Entry.attrib.get("month") == Today[1] and \
+#         Entry.attrib.get("year") == Today[2]:
+#
 
 
 
